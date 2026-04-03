@@ -9,18 +9,21 @@ import {
 import { GameEngine } from "react-native-game-engine";
 import { Dimensions, Image } from "react-native";
 import Matter from "matter-js";
-import entities from "./entities";
+import createEntities from "./entities";
 import Physics from "./Physics";
 import React, { useEffect, useState, useRef } from "react";
 import SpriteSheet from "rn-sprite-sheet";
 import Constants from "./Constants";
 // import Images from "./Images";
 export default function App() {
-  const gameengine = useRef(null);
+  const gameEngineRef = useRef(null);
   const [running, setRunning] = useState(false);
   const [gameover, setGameover] = useState(false);
+  const [score, setScore] = useState(0);
+  const entities = createEntities();
+
   useEffect(() => {
-    setRunning(true);
+    setRunning(false);
   }, []);
   return (
     <View style={styles.container}>
@@ -30,43 +33,55 @@ export default function App() {
         resizeMode="stretch"
       />
       <GameEngine
-        ref={gameengine}
+        ref={gameEngineRef}
         systems={[Physics]}
-        entities={entities()}
+        entities={entities}
         running={running}
         style={styles.gameContainer}
         onEvent={(e) => {
-          console.log(e);
-          if (e.type === "gameover") {
-            setRunning(false);
-            setGameover(true);
-          }
+          switch (e.type) { 
+            case "gameover": 
+              setRunning(false); 
+              setGameover(true);
+              break; 
+            case "score": 
+              setScore(score+10); 
+              break; 
+            }
         }}
       >
         {<StatusBar style="auto" hidden={true} />}
       </GameEngine>
-      {/* <Text
-        style={{
-          color: "white",
-          position: "absolute",
-        }}
-      >
-        Priyank
-      </Text> */}
+      <View style={styles.score}>
+        <Text style={{ color: "white", fontSize: 25, textAlign: "center"}}>Score: {score}</Text>
+      </View>
+      {!running && !gameover && (
+        <View>
+          <Text style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', color: "white", fontSize: 25, textAlign: "center", paddingHorizontal: 20}}>Instructions: Avoid the other cars and obstacles, collect gas cans to speed up</Text>
+          <TouchableOpacity onPress={() => {
+            setRunning(true);
+          }}>
+            <Text style={{ color: "white", fontSize: 25, textAlign: "center"}}>
+              START GAME
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
       {gameover && (
         <View>
-          <Text style={{ color: "white", fontSize: "25", textAlign: "center" }}>
+          <Text style={{ color: "white", fontSize: 25, textAlign: "center" }}>
             GAME OVER
           </Text>
           <TouchableOpacity
             onPress={() => {
               setRunning(true);
               setGameover(false);
-              gameengine.current.swap(entities());
+              setScore(0);
+              gameEngineRef.current.swap(entities);
             }}
           >
             <Text
-              style={{ color: "white", fontSize: "25", textAlign: "center" }}
+              style={{ color: "white", fontSize: 25, textAlign: "center" }}
             >
               Reset?
             </Text>
@@ -74,18 +89,19 @@ export default function App() {
         </View>
       )}
       {/* Controls */}
+      
       <View style={styles.controls}>
         <View style={styles.row}>
           <TouchableOpacity
             style={styles.button}
-            onPress={() => Physics.movePlayer("left")}
+            onPress={() => gameEngineRef.current.dispatch({ type: "left" })}
           >
             <Text style={styles.text}>Left</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.button}
-            onPress={() => Physics.movePlayer("right")}
+            onPress={() => gameEngineRef.current.dispatch({ type: "right" })}
           >
             <Text style={styles.text}>Right</Text>
           </TouchableOpacity>
@@ -118,6 +134,11 @@ const styles = StyleSheet.create({
     right: 0,
     width: Constants.SCREEN_WIDTH,
     height: Constants.SCREEN_HEIGHT,
+  },
+  score: {
+    position: "absolute",
+    top: 10,
+    left: 10,
   },
   controls: {
     position: "absolute",
