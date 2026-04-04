@@ -35,19 +35,19 @@ export default (gameWorld) => {
       "clear",
       { x: Constants.WINDOW_WIDTH / 4, y: 200 },
       { height: 110, width: 50 },
-    ), 
+    ),
     Gas: Gas(
       world,
       "clear",
       { x: Constants.WINDOW_WIDTH / 2, y: 150 },
       { height: 58, width: 58 },
-    ), 
+    ),
     Truck: Truck(
       world,
       "clear",
       { x: Constants.WINDOW_WIDTH / 2 + 100, y: 100 },
       { height: 102, width: 54 },
-    ), 
+    ),
     TopBoundary: BoundaryTop(
       world,
       "green",
